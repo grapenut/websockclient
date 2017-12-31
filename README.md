@@ -1,6 +1,8 @@
 # WebSockClient (WSClient)
 
-wsclient.js provides the WSClient object which has 2 exports: WSClient.open() and WSClient.emulate(). It is responsible for the websocket connection and terminal emulation of color escape codes.
+WSClient is a library for making websocket connections to a websocket-enabled PennMUSH server. It also provides terminal emulation to convert ANSI color escape codes to colored text in an HTML DOM element.
+
+wsclient.js provides the WSClient object which has 2 exports: WSClient.open() and WSClient.emulate().
 
 index.html, style.css and local.js are a simple implementation of a client that provides an example of text, pueblo, and html handlers. These handlers are passed data (text string, html string, pueblo tags/attrs) and are responsible for appending that data to the terminal element in the browser. Terminal emulation must be enabled on the terminal output element before it can properly emulate ANSI color codes.
 
