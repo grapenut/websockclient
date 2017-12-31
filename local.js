@@ -1,18 +1,34 @@
+// A Simple WSClient for PennMUSH
+// -grapenut
+
 var defaultHost = window.location.hostname;
 var defaultPort = '4201';
 
+// pre-define the connection object, later it will be set to
+// conn = WSClient.open('ws://host:port/wsclient')
 var conn = null;
 
+// user information
 var login = document.getElementById('login');
 var username = document.getElementById('username');
 var password = document.getElementById('password');
 
+// terminal is the container for output, cmdprompt, quicklinks and the entry box.
 var terminal = document.getElementById('terminal');
-var output = MU.emulate(document.getElementById('output'));
-var cmdprompt = MU.emulate(document.getElementById('prompt'));
+
+// the main terminal output window
+var output = WSClient.emulate(document.getElementById('output'));
+
+// update the command prompt without modifying the main output
+var cmdprompt = WSClient.emulate(document.getElementById('prompt'));
+
+// clickable command links that do some common tasks (who, look, @mail, etc)
 var quicklinks = document.getElementById('quicklinks');
+
+// the user input box
 var entry = document.getElementById('entry');
 
+// settings popup and the different configuration options
 var settingsContainer = document.getElementById('settings-container');
 var settingsForm = document.getElementById('settings');
 var fontSelect = document.getElementById('fontSelect');
@@ -22,30 +38,33 @@ var forceSSL = document.getElementById('forceSSL');
 var keepAliveTime = document.getElementById('keepAliveTime');
 var keepAliveLabel = document.getElementById('keepAliveLabel');
 
+// info window (show the credits)
 var infoContainer = document.getElementById('info-container');
 
-var userinputContainer = document.getElementById('userinput-container');
-var userinputForm = document.getElementById('userinput');
-var commandContainer = document.getElementById('command-container');
-
+// user input command history
 var history = [];
 var ncommand = 0;
 var save_current = '';
 var current = -1;
-var eat_newline = 0;
+
+
 
 /***********************************************/
 /**  Body  **/
 
+// called by body.onLoad
 function startup() {
+  // load browser cookie and parse settings
   settings.load();
 
+  // set the initial screen dimensions (use for multi-window output)
   terminal.style.left = settings.SCREEN_LEFT + 'em';
   terminal.style.right = settings.SCREEN_RIGHT + 'em';
 
   terminal.style.top = settings.SCREEN_TOP + 'em';
   terminal.style.bottom = settings.SCREEN_BOT + 'em';
 
+  // set some obvious ChangeMe values if there are none saved
   if (username.value === '') {
     username.value = 'Username';
   }
@@ -54,14 +73,22 @@ function startup() {
     password.value = 'Password';
   }
 
+  // autoconnect, if desired
   settings.autoConnect.val && reconnect();
 
+  // start the keepalive loop
   keepalive();
 
+  // set focus on the input box
   refocus();
 };
 
+
+
+// called by body.onUnload
 function shutdown() {
+  // if we have an active connection, 
+  // send a QUIT command and exit gracefully
   if (conn && conn.socket.readyState === 1) {
     conn.sendText('QUIT');
     setTimeout(conn.close, 1000);
@@ -70,96 +97,126 @@ function shutdown() {
   conn = null;
 };
 
+
+
 /***********************************************/
 /**  Callbacks  **/
 
+// (re)connect to the MUSH when the login button is pushed
 login.onsubmit = function() {
   reconnect();
 
   return false;
 };
 
+
+
+// the user pressed enter
 terminal.onsubmit = function() {
   if (conn && conn.socket.readyState === 1) {
     if (entry.value !== '') {
+      // save command history
       history[ncommand] = entry.value;
       ncommand++;
       save_current = '';
       current = -1;
 
+      // send current user input to the MUSH
       conn.sendText(entry.value);
+      // and echo to the terminal
       settings.localEcho.val && msg(entry.value);
     }
   } else {
+    // auto-reconnect if the connection was lost
     settings.autoReConnect.val && reconnect();
   }
 
+  // clear the user input and make sure it keeps focus
   entry.value = '';
-
   entry.focus();
 
   return false;
 };
 
-output.onLine = Linkify.linkify;
 
+
+// capture keypresses and implement special command functions
 entry.onkeydown = function(e) {
   var code = (e.keyCode ? e.keyCode : e.which);
 
   if ((code == 80 && e.ctrlKey)) {
-  //if ((code == 38 && e.shiftKey) || (code == 80 && e.ctrlKey)) {
-    // Up arrow || ctrl+p
+    // ctrl+p
+    
+    // let's prevent printing
     e.preventDefault();
 
+    // keep the current entry in case they come back to it
     if (current < 0) {
       save_current = entry.value;
     }
     
+    // cycle command history back
     if (current < ncommand - 1) {
       current++;
       entry.value = history[ncommand-current-1];
     }
+
   } else if ((code == 78 && e.ctrlKey)) {
-  //} else if ((code == 40 && e.shiftKey) || (code == 78 && e.ctrlKey)) {
-    // Down arrow || ctrl+n
+    // ctrl+n
+    
+    // cycle command history forward
     if (current > 0) {
       current--;
       entry.value = history[ncommand-current-1];
     } else if (current === 0) {
+      // recall the current entry if they had typed something already
       current = -1;
       entry.value = save_current;
     }
+
   } else if (code == 13) {
     // enter key
+    
+    // prevent the default action of submitting forms, etc
     e.preventDefault();
-
+    
+    // detect whether we have an overlay showing and close it
     if (settingsContainer.style.visibility === 'visible') {
       settings.save();
-    } else if (userinputContainer.style.visibility === 'visible') {
-      userinputContainer.style.visiblity = 'hidden';
     } else if (infoContainer.style.visibility === 'visible') {
       infoContainer.style.visibility = 'hidden';
     } else {
-      // no overlay, submit text
+      // no overlay, submit user input
       terminal.onsubmit();
     }
 
+    // make sure we keep focus on the input box
     entry.focus();
+
   } else if (code == 27) {
+    // escape key
+    
+    // close overlays, or recall the settings box if no overlay is present
     toggle_overlay();
   }
 };
 
+
+
+// capture key releases
 entry.onkeyup = function(e) {
   var code = (e.keyCode ? e.keyCode : e.which);
 
   if ((code == 80 && e.ctrlKey)) {
-  //if ((code == 38 && e.shiftKey) || (code == 80 && e.ctrlKey)) {
-    // Move cursor to end of word after history change
-    // only need for going up, since down arrow and ctrl+n move cursor already
+    // ctrl+p
+    
+    // move the cursor to end of the input text after a history change
+    // only needed for going up, since ctrl+n moves cursor already
     move_cursor_to_end(entry);
   }
 };
+
+
 
 settingsForm.onsubmit = function () {
   settings.save();
@@ -168,6 +225,8 @@ settingsForm.onsubmit = function () {
 
   return false;
 };
+
+
 
 settingsForm.onkeydown = function(e) {
   var code = (e.keyCode ? e.keyCode : e.which);
@@ -179,6 +238,11 @@ settingsForm.onkeydown = function(e) {
 
 };
 
+
+
+// automatically update port +/- 1 when forceSSL is changed
+// 4201 -> 4202 with ssl
+// this maybe is a bit awkward, but I didn't come up with a better idea
 forceSSL.onchange = function() {
   if (forceSSL.checked) {
     serverPort.value = parseInt(serverPort.value) + 1;
@@ -187,34 +251,22 @@ forceSSL.onchange = function() {
   }
 };
 
-userinputForm.onsubmit = function () {
-  
-  var cmd = userinput.get();
 
-  conn && conn.sendText(cmd);
-  settings.localEcho.val && msg(cmd);
-    
-  toggle_overlay();
-};
 
-userinputForm.onkeydown = function (e) {
-  var code = (e.keyCode ? e.keyCode : e.which);
-
-  if (code == 27) {
-    // escape pressed, toggle form input and delete command elements
-    toggle_overlay();
-  }
-};
-
+// close the info window on any key press
 infoContainer.onkeydown = function(e) {
   var code = (e.keyCode ? e.keyCode : e.which);
 
   toggle_overlay();
 };
 
+
+
 /***********************************************/
 /**  Focus  **/
 
+// put focus back on the user input box
+// unless it's in another input box (e.g. username/password/settings)
 function refocus() {
   if (((window.getSelection == "undefined") ||
        (window.getSelection() == "")) &&
@@ -227,6 +279,9 @@ function refocus() {
   }
 };
 
+
+
+// move the input cursor to the end of the input elements current text
 function move_cursor_to_end(el) {
   if (typeof el.selectionStart == "number") {
       el.selectionStart = el.selectionEnd = el.value.length;
@@ -238,12 +293,13 @@ function move_cursor_to_end(el) {
   }
 };
 
+
+
+// close anything that may be showing or bring up the settings
 function toggle_overlay() {
   if (settingsContainer.style.visibility === 'visible') {
     settings.show();
     settings.reconfigure();
-  } else if (userinputContainer.style.visibility === 'visible') {
-    userinputContainer.style.visiblity = 'hidden';
   } else if (infoContainer.style.visibility === 'visible') {
     infoContainer.style.visibility = 'hidden';
   } else {
@@ -254,9 +310,12 @@ function toggle_overlay() {
   entry.focus();
 };
 
+
+
 /***********************************************/
 /**  Terminal  **/
 
+// send a log message to the terminal output
 function msg(data) {
   var text = document.createElement('div');
   text.className = "logMessage";
@@ -264,40 +323,59 @@ function msg(data) {
   output.appendHTML(text);
 };
 
+
+
+// execute pueblo command
+// a '??' token in command will be replaced with user input
 function xch_cmd(command) {
   var cmd = command;
   var regex = /\?\?/;
   
+  // detect if user input is required by finding '??'
   if (cmd.search(regex) !== -1) {
     var val = prompt(command);
     
+    // replace '??' with the value input by the user
     if (val && val != 'undefined') {
       cmd = cmd.replace(regex, val);
     } else {
       cmd = cmd.replace(regex, '');
     }
   }
-
+  
+  // send the (modified) command to the MUSH
   conn && conn.sendText(cmd);
   settings.localEcho.val && msg(cmd);
 };
 
+
+
+// clear the child elements from any element (like the output window)
 function clearscreen (which) {
   document.getElementById(which).innerHTML = '';
 };
 
+
+
+// keepalive function continually calls itself and sends the IDLE command
 function keepalive () {
   conn && settings.keepAlive.val && conn.sendText("IDLE");
   setTimeout(keepalive, settings.keepAliveTime.val*1000.0);
 };
 
+
+
+// connect or reconnect to the MUSH
 function reconnect() {
+
+  // we can't do websockets, redirect to 505
   if (!window.WebSocket){
     window.location.replace("/505.htm");
   }
 
   entry.focus();
 
+  // clean up the old connection gracefully
   if (conn) {
     var old = conn;
     old.sendText('QUIT');
@@ -307,10 +385,13 @@ function reconnect() {
 
   msg('%% Reconnecting to server...\r\n');
 
+  // detect whether to use SSL or not
   var proto = ((window.location.protocol == "https:") || settings.forceSSL.val) ? 'wss://' : 'ws://';
 
-  conn = MU.open(proto + settings.serverAddress.val + ":" + settings.serverPort.val + '/wsclient');
+  // open a new connection to ws://host:port/wsclient
+  conn = WSClient.open(proto + settings.serverAddress.val + ":" + settings.serverPort.val + '/wsclient');
   
+  // auto-login if username and password are not the default values
   conn.onOpen = function (text) {
     msg("%% Connected.");
     if (username.value.toUpperCase() !== "USERNAME" && username.value !== "") {
@@ -320,33 +401,62 @@ function reconnect() {
     }
   };
 
+
+
+  // send a log message if there is a connection error
   conn.onError = function (evt) {
     msg("%% Connection error!");
     console.log('error', evt);
   };
 
+
+
+  // send a log message when connection closed
   conn.onClose = function (evt) {
     msg("%% Connection closed.");
     console.log('close', evt);
   };
 
+
+
+  // handle incoming plain text
+  // this will parse ansi color codes, but won't render untrusted HTML
   conn.onText = function (text) {
     var reg = /^FugueEdit > /;
+    
+    // detect if we are capturing a FugueEdit string
     if (text.search(reg) !== -1) {
+      // replace the user input with text, sans the FugueEdit bit
       entry.value = text.replace(reg, "");
     } else {
+      // append text to the output window
       output.appendText(text);
     }
   };
+
+
   
+  // handle incoming JSON object
   conn.onObject = function (obj) {
+    // just send a log message
+    // could use this for lots of neat stuff
+    // maps, huds, combat logs in a separate window
     console.log('object', obj);
   };
+
+
   
+  // handle incoming HTML from the MUSH
+  // it's already been encoded and trusted by the MUSH
   conn.onHTML = function (fragment) {
+    // just append it to the terminal output
     output.appendHTML(fragment);
   };
+
+
   
+  // handle incoming pueblo tags
+  // currently implements xch_cmd and xch_hint
   conn.onPueblo = function (tag, attrs) {
     var html = '<' + tag + (attrs ? ' ' : '') + attrs + '>';
 
@@ -397,45 +507,20 @@ function reconnect() {
     }
   };
 
+
+
+  // handle incoming command prompt
   conn.onPrompt = function (text) {
+    // replace anything in cmdprompt with text
+    // cmdprompt is an emulated terminal, so use appendText() to get ansi parsed
     cmdprompt.innerHTML = '';
     cmdprompt.appendText(text + '\r\n');
   };
+
+
 };
 
-/***********************************************/
-/**  User Input  **/
 
-var UserInputPrompt = (function (window, document, undefined) {
-  this.cmdstring = '';
-  this.hintstring = '';
-  
-  this.show = function (command, hint) {
-    var regex = /\?\?/;
-    var cmd = command.split(regex);
-
-    // build command prompt
-    for (var i=0; i < cmd.length-1; i++)
-    {
-      var div = commandContainer.createElement('div');
-      div.innerHtml(cmd[i]);
-      
-      var input = commandContainer.createElement('input');
-    }
-
-    userinputContainer.style.visibility = 'visible';
-  };
-
-  this.cancel = function () {
-
-  };
-
-  this.get = function () {
-
-  };
-});
-
-var userinput = new UserInputPrompt(window,document,undefined);
 
 /***********************************************/
 /**  Settings  **/
@@ -473,6 +558,8 @@ var SettingsClass = (function (window, document, undefined) {
     keepAliveLabel.innerHTML='KeepAlive('+keepAliveTime.value+'s)';
   };
 
+
+
   this.show = function () {
     if (settingsContainer.style.visibility === 'visible') {
       settingsContainer.style.visibility = 'hidden';
@@ -495,6 +582,8 @@ var SettingsClass = (function (window, document, undefined) {
       settingsContainer.style.visibility = 'visible';
     }
   };
+
+
 
   this.cookie = function (c_name) {
     var c_value = this.doc.cookie;
@@ -521,6 +610,8 @@ var SettingsClass = (function (window, document, undefined) {
   
     return c_value;
   };
+
+
 
   // Load values from cookies, or save the cookie on first visitl
   this.load = function () {
@@ -557,6 +648,8 @@ var SettingsClass = (function (window, document, undefined) {
     
     this.reconfigure();
   };
+
+
   
   // Save form values to settings values, and settings values to cookies
   this.save = function () {
@@ -591,6 +684,8 @@ var SettingsClass = (function (window, document, undefined) {
     settingsContainer.style.visibility = 'hidden';
   };
 
+
+
   // Resize or otherwise modify the output window to reflect the new settings
   this.reconfigure = function() {
     document.body.style.fontFamily = this.fontSelect.val + ", 'Courier New', monospace";
@@ -602,6 +697,8 @@ var SettingsClass = (function (window, document, undefined) {
     entry.style.height = parseInt(this.numInputLines.val) + 'em';
     keepAliveLabel.innerHTML='KeepAlive('+keepAliveTime.value+'s)';
   };
+
+
 
 });
 

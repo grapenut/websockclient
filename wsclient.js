@@ -1,4 +1,13 @@
-var MU = (function (window, document, undefined) {
+//////////////////////////////////////////////////////////////////
+// WebSockClient for PennMUSH
+// There is no license. Just make a neato game with it.
+//////////////////////////////////////////////////////////////////
+
+var WSClient = (function (window, document, undefined) {
+
+  //////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////
+
   // MU* protocol carried over the WebSocket API.
   function Connection(url) {
     var that = this;
@@ -117,6 +126,9 @@ var MU = (function (window, document, undefined) {
   Connection.prototype.onHTML = null;
   Connection.prototype.onPueblo = null;
   Connection.prototype.onPrompt = null;
+
+  //////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////
 
   // MU* terminal emulator.
   function Terminal(root) {
@@ -449,25 +461,11 @@ var MU = (function (window, document, undefined) {
     }
   };
 
-  Terminal.prototype.onLine = null;
+  //////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////
 
-  // Module exports.
-  var exports = {};
-
-  exports.open = function (url) {
-    return new Connection(url);
-  };
-
-  exports.emulate = function (root) {
-    return new Terminal(root);
-  };
-
-  return exports;
-})(window, document);
-
-var Linkify = (function (window, document, undefined) {
   // Example onLine() handler that linkifies URLs in text.
-  function linkify(lineBuf) {
+  function LinkHandler(lineBuf) {
     // Merge text so we can scan it.
     if (!lineBuf.length) {
       return;
@@ -479,7 +477,7 @@ var Linkify = (function (window, document, undefined) {
     }
 
     // Scan the merged text for links.
-    var links = linkify.scan(line);
+    var links = LinkHandler.scan(line);
     if (!links.length) {
       return;
     }
@@ -533,11 +531,11 @@ var Linkify = (function (window, document, undefined) {
   // Link scanner function.
   // TODO: Customizers may want to replace this, since regular expressions
   // ultimately limit how clever our heuristics can be.
-  linkify.scan = function (line) {
+  LinkHandler.scan = function (line) {
     var links = [], result;
 
-    linkify.regex.lastIndex = 0;
-    while ((result = linkify.regex.exec(line))) {
+    LinkHandler.regex.lastIndex = 0;
+    while ((result = LinkHandler.regex.exec(line))) {
       var info = {};
 
       info.start = result.index + result[1].length;
@@ -563,7 +561,7 @@ var Linkify = (function (window, document, undefined) {
     return links;
   };
 
-  // Linkifier regex:
+  // LinkHandler regex:
   //
   // 1. Links must be preceded by a non-alphanumeric delimiter.
   // 2. Links are matched greedily.
@@ -573,12 +571,27 @@ var Linkify = (function (window, document, undefined) {
   //
   // TODO: This can be improved (but also customized). One enhancement might be
   // to support internationalized syntax.
-  linkify.regex = /(^|[^a-zA-Z0-9]+)(?:((?:http|https):\/\/[-a-zA-Z0-9_.~:\/?#[\]@!$&'()*+,;=%]+)|([-.+a-zA-Z0-9_]+@[-a-zA-Z0-9]+(?:\.[-a-zA-Z0-9]+)+)|(@[a-zA-Z]\w*))/g;
+  LinkHandler.regex = /(^|[^a-zA-Z0-9]+)(?:((?:http|https):\/\/[-a-zA-Z0-9_.~:\/?#[\]@!$&'()*+,;=%]+)|([-.+a-zA-Z0-9_]+@[-a-zA-Z0-9]+(?:\.[-a-zA-Z0-9]+)+)|(@[a-zA-Z]\w*))/g;
+
+  Terminal.prototype.onLine = LinkHandler;
+
+  //////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////
 
   // Module exports.
   var exports = {};
 
-  exports.linkify = linkify;
+  exports.open = function (url) {
+    return new Connection(url);
+  };
 
+  exports.emulate = function (root) {
+    return new Terminal(root);
+  };
+  
+  // export the LinkHandler just in case it's useful elsewhere
+  exports.LinkHandler = LinkHandler;
+  
   return exports;
 })(window, document);
+
