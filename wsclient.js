@@ -458,7 +458,7 @@ var MU = (function (window, document, undefined) {
     return new Connection(url);
   };
 
-  exports.wrap = function (root) {
+  exports.emulate = function (root) {
     return new Terminal(root);
   };
 

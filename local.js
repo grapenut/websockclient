@@ -8,8 +8,8 @@ var username = document.getElementById('username');
 var password = document.getElementById('password');
 
 var terminal = document.getElementById('terminal');
-var output = MU.wrap(document.getElementById('output'));
-var cmdprompt = MU.wrap(document.getElementById('prompt'));
+var output = MU.emulate(document.getElementById('output'));
+var cmdprompt = MU.emulate(document.getElementById('prompt'));
 var quicklinks = document.getElementById('quicklinks');
 var entry = document.getElementById('entry');
 
