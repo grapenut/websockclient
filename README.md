@@ -1,6 +1,6 @@
 # WebSockClient (WSClient)
 
-WSClient is a library for making websocket connections to a websocket-enabled PennMUSH server. It also provides terminal emulation to convert ANSI color escape codes to colored text in an HTML DOM element.
+WSClient is a JavaScript library for making websocket connections from a browser to a websocket-enabled PennMUSH server. It also provides terminal emulation to convert ANSI color escape codes to colored text in an HTML DOM element.
 
 wsclient.js provides the WSClient object which has 2 exports: WSClient.open() and WSClient.emulate().
 
