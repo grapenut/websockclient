@@ -7,9 +7,7 @@ wsclient.js provides the WSClient object which has 2 exports: WSClient.open() an
 index.html, style.css and local.js are a simple implementation of a client that provides an example of text, pueblo, and html handlers. These handlers are passed data (text string, html string, pueblo tags/attrs) and are responsible for appending that data to the terminal element in the browser. Terminal emulation must be enabled on the terminal output element before it can properly emulate ANSI color codes.
 
 # Terminal Emulation
-WSClient.emulate(terminal) enables terminal emulation on the body of DOM element "terminal" (usually a div).
-
-There are a few functions provided to terminal now.
+terminal = WSClient.emulate(root) returns a terminal emulator using DOM element "root" as the output container (usually a div).
 
 terminal.appendText(text) appends "text" to the terminal, parsing any color escape codes into HTML/CSS.
 terminal.appendHTML(html) appends "html" as a code fragment to the end of the terminal.
@@ -20,7 +18,7 @@ connection = WSClient.open(url) returns a connection object. The "url" is of the
 connection.sendText(text) sends the command "text" to the MUSH.
 
 # Connection Events
-Overload events on the connection object in order to handle data.
+Overload events on the connection object in order to handle the different types of incoming data and send it to the terminal.
 
 connection.onOpen(evt) can be overloaded to automatically send the connect command with username/password (e.g. from an input box).
 
