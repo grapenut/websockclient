@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+
+<link rel="stylesheet" href="ansi.css">
+<link rel="stylesheet" href="minimal.css">
+
+<title>Minimal Websocket JavaScript Client</title></head>
+
+<body onLoad="entry.focus()"
+      onUnload="conn.sendText('QUIT'); setTimeout(conn.close, 1000);"
+      onClick="entry.focus()">
+
+<!-- terminal window --!>
+<div id="terminal">
+  <div id="output" class="ansi-37 ansi-40"></div>
+  <textarea id="entry" autocomplete="off" autofocus></textarea>
+</div>
+
+<script src="wsclient.js"></script>
+<script type="text/javascript">
+  var serverAddress = window.location.hostname;
+  var serverPort = '4201';
+  var terminal = document.getElementById('terminal');
+  var output = WSClient.emulate(document.getElementById('output'));
+  var entry = document.getElementById('entry');
+  var conn = WSClient.open('ws://' + serverAddress + ":" + serverPort + '/wsclient');
+
+  conn.onText = function (text) { output.appendText(text); };
+  conn.onHTML = function (fragment) { output.appendHTML(fragment); };
+
+  entry.onkeydown = function(e) {
+    var code = (e.keyCode ? e.keyCode : e.which);
+    if (code == 13) {     // enter key
+      e.preventDefault();
+      conn.sendText(entry.value);
+      entry.value = '';
+      entry.focus();
+    }
+  };
+</script>
+
+</body>
+</html>
