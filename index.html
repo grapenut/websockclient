@@ -39,8 +39,10 @@
   // function to send a command string to the server
   function sendCommand(cmd) {
     if (conn.isConnected()) {
-      conn.sendText(cmd);
-      output.appendMessage('localEcho', cmd)
+      if (cmd !== '') {
+        conn.sendText(cmd);
+        output.appendMessage('localEcho', cmd);
+      }
     } else {
       // connection was broken, let's reconnect
       conn.reconnect();

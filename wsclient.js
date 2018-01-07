@@ -826,11 +826,13 @@ var WSClient = (function (window, document, undefined) {
     if (cmd.search(regex) !== -1) {
       var val = prompt(command);
       
-      // make sure we have a good string in val
-      if (!val || val === 'undefined') { val = ''; }
-     
-      // replace the ?? token with the new value
-      cmd = cmd.replace(regex, val);
+      if (!val || val === 'undefined') {
+        // user cancelled the prompt, don't send any command
+        cmd = '';
+      } else {
+        // replace the ?? token with the prompt value
+        cmd = cmd.replace(regex, val);
+      }
     }
     
     return cmd;
