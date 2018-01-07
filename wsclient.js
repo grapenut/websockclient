@@ -66,6 +66,7 @@ var WSClient = (function (window, document, undefined) {
   };
 
   Connection.prototype.onOpen = null;
+  Connection.prototype.onError = null;
   Connection.prototype.onClose = null;
 
   Connection.prototype.onMessage = function (channel, data) {
@@ -628,7 +629,7 @@ var WSClient = (function (window, document, undefined) {
   
   
   // move the input cursor to the end of the input elements current text
-  UserInput.prototype.move_cursor_to_end = function() {
+  UserInput.prototype.moveCursor = function() {
     if (typeof this.root.selectionStart == "number") {
         this.root.selectionStart = this.root.selectionEnd = this.root.value.length;
     } else if (typeof this.root.createTextRange != "undefined") {
@@ -883,7 +884,7 @@ var WSClient = (function (window, document, undefined) {
         UserInput.isKeyCycleForward(that, key)) {
 
       // move the cursor to end of the input text after a history change
-      that.move_cursor_to_end();
+      that.moveCursor();
     }
   };
 
