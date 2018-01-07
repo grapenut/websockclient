@@ -31,7 +31,7 @@ __ansi.css__ defines the style tags used in xterm256 color emulation.
 ## Open
 #### Open a Connection
 
-`conn = WSClient.open(url)` returns a connection object. The `url` is of the form [](ws://host:port/wsclient) or [](wss://host:port/wsclient) for SSL. 
+`conn = WSClient.open(url)` returns a connection object. The `url` is of the form ws://host:port/wsclient or wss://host:port/wsclient for SSL. 
 
 #### Connection Functions
 
