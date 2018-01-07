@@ -11,8 +11,43 @@ var WSClient = (function (window, document, undefined) {
   // MU* protocol carried over the WebSocket API.
   function Connection(url) {
     var that = this;
+    
+    this.url = url;
+    this.socket = null;
+    
+    Connection.reconnect(that);
+  }
+  
+  Connection.CHANNEL_TEXT = 't';
+  Connection.CHANNEL_JSON = 'j';
+  Connection.CHANNEL_HTML = 'h';
+  Connection.CHANNEL_PUEBLO = 'p';
+  Connection.CHANNEL_PROMPT = '>';
 
-    this.socket = new window.WebSocket(url);
+  Connection.reconnect = function (that) {
+    that.reconnect();
+  };
+  
+  Connection.onopen = function (that, evt) {
+    that.onOpen && that.onOpen(evt);
+  };
+
+  Connection.onerror = function (that, evt) {
+    that.onError && that.onError(evt);
+  };
+
+  Connection.onclose = function (that, evt) {
+    that.onClose && that.onClose(evt);
+  };
+
+  Connection.onmessage = function (that, evt) {
+    that.onMessage && that.onMessage(evt.data[0], evt.data.substring(1));
+  };
+
+  Connection.prototype.reconnect = function () {
+    var that = this;
+
+    this.socket = new window.WebSocket(this.url);
 
     this.socket.onopen = function (evt) {
       Connection.onopen(that, evt);
@@ -29,28 +64,10 @@ var WSClient = (function (window, document, undefined) {
     this.socket.onmessage = function (evt) {
       Connection.onmessage(that, evt);
     };
-  }
-
-  Connection.CHANNEL_TEXT = 't';
-  Connection.CHANNEL_JSON = 'j';
-  Connection.CHANNEL_HTML = 'h';
-  Connection.CHANNEL_PUEBLO = 'p';
-  Connection.CHANNEL_PROMPT = '>';
-
-  Connection.onopen = function (that, evt) {
-    that.onOpen && that.onOpen(evt);
   };
-
-  Connection.onerror = function (that, evt) {
-    that.onError && that.onError(evt);
-  };
-
-  Connection.onclose = function (that, evt) {
-    that.onClose && that.onClose(evt);
-  };
-
-  Connection.onmessage = function (that, evt) {
-    that.onMessage && that.onMessage(evt.data[0], evt.data.substring(1));
+  
+  Connection.prototype.isConnected = function() {
+    return (this.socket && (this.socket.readyState === 1));
   };
 
   Connection.prototype.close = function () {
@@ -591,12 +608,14 @@ var WSClient = (function (window, document, undefined) {
   UserInput.prototype.onEscape = null;
   
   // push a command onto the history list and clear the input box
-  UserInput.prototype.pushCommand = function() {
-    this.history[this.ncommand] = this.root.value;
-    this.ncommand++;
-    this.save_current = '';
-    this.current = -1;
-    this.root.value = '';
+  UserInput.prototype.saveCommand = function() {
+    if (this.root.value !== '') {
+      this.history[this.ncommand] = this.root.value;
+      this.ncommand++;
+      this.save_current = '';
+      this.current = -1;
+      this.root.value = '';
+    }
   };
   
   // cycle the history backward
@@ -630,9 +649,9 @@ var WSClient = (function (window, document, undefined) {
   
   // move the input cursor to the end of the input elements current text
   UserInput.prototype.moveCursor = function() {
-    if (typeof this.root.selectionStart == "number") {
+    if (typeof this.root.selectionStart === "number") {
         this.root.selectionStart = this.root.selectionEnd = this.root.value.length;
-    } else if (typeof this.root.createTextRange != "undefined") {
+    } else if (typeof this.root.createTextRange !== "undefined") {
         this.focus();
         var range = this.root.createTextRange();
         range.collapse(false);
@@ -666,7 +685,7 @@ var WSClient = (function (window, document, undefined) {
       return that.keyCycleForward(key);
     } else {
       // default key is ctrl+n
-      return (key.code == 78 && key.ctrl);
+      return (key.code === 78 && key.ctrl);
     }
   };
   
@@ -675,7 +694,7 @@ var WSClient = (function (window, document, undefined) {
       return that.keyCycleBackward(key);
     } else {
       // default key is ctrl+p
-      return (key.code == 80 && key.ctrl);
+      return (key.code === 80 && key.ctrl);
     }
   };
   
@@ -808,7 +827,7 @@ var WSClient = (function (window, document, undefined) {
       var val = prompt(command);
       
       // make sure we have a good string in val
-      if (!val || val == 'undefined') { val = ''; }
+      if (!val || val === 'undefined') { val = ''; }
      
       // replace the ?? token with the new value
       cmd = cmd.replace(regex, val);
@@ -841,18 +860,17 @@ var WSClient = (function (window, document, undefined) {
       // cycle history forward
       that.cycleForward();
 
-    } else if (key.code == 13) {
+    } else if (key.code === 13) {
       // enter key
-
-      if (that.root.value !== '') {
-        // pass through to the local callback for sending data
-        that.onEnter && that.onEnter();
-        
-        // save the command history and clear the input box
-        that.pushCommand();
-      }
       
-    } else if (key.code == 27) {
+      // save the command string and clear the input box
+      var cmd = that.root.value;
+      that.saveCommand();
+
+      // pass through to the local callback for sending data
+      that.onEnter && that.onEnter(cmd);
+        
+    } else if (key.code === 27) {
 
       // pass through to the local callback for the escape key
       that.onEscape && that.onEscape();
@@ -897,7 +915,7 @@ var WSClient = (function (window, document, undefined) {
   var exports = {};
 
   // open a websocket connection to url
-  exports.open = function (url) {
+  exports.connect = function (url) {
     return new Connection(url);
   };
 

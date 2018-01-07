@@ -34,69 +34,53 @@
   var output = WSClient.output(document.getElementById('output'));
   var cmdprompt = WSClient.output(document.getElementById('prompt'));
   var input = WSClient.input(document.getElementById('input'));
-  var conn = null;
+  var conn = WSClient.connect(serverUrl);
 
-  function connect(url) {
-    conn = WSClient.open(url);
-
-    // just log a standard message on these socket status events
-    conn.onOpen = function (evt) { output.appendMessage('logMessage', '%% Connected.'); };
-    conn.onError = function (evt) { output.appendMessage('logMessage', '%% Connection error!'); };
-    conn.onClose = function (evt) { output.appendMessage('logMessage', '%% Connection closed.'); };
-
-    // handle incoming text, html, pueblo, or command prompts
-    conn.onText = function (text) { output.appendText(text); };
-    conn.onHTML = function (fragment) { output.appendHTML(fragment); };
-    conn.onPueblo = function (tag, attrs) { output.appendPueblo(tag, attrs); };
-    conn.onPrompt = function (text) { cmdprompt.clear(); cmdprompt.appendText(text + '\r\n'); };
+  // function to send a command string to the server
+  function sendCommand(cmd) {
+    if (conn.isConnected()) {
+      conn.sendText(cmd);
+      output.appendMessage('localEcho', cmd)
+    } else {
+      // connection was broken, let's reconnect
+      conn.reconnect();
+      output.appendMessage('logMessage', '%% Reconnecting to server...');
+    }
   }
   
-  connect(serverUrl);
+  // just log a standard message on these socket status events
+  conn.onOpen = function (evt) { output.appendMessage('logMessage', '%% Connected.'); };
+  conn.onError = function (evt) { output.appendMessage('logMessage', '%% Connection error!'); };
+  conn.onClose = function (evt) { output.appendMessage('logMessage', '%% Connection closed.'); };
+
+  // handle incoming text, html, pueblo, or command prompts
+  conn.onText = function (text) { output.appendText(text); };
+  conn.onHTML = function (fragment) { output.appendHTML(fragment); };
+  conn.onPueblo = function (tag, attrs) { output.appendPueblo(tag, attrs); };
+  conn.onPrompt = function (text) { cmdprompt.clear(); cmdprompt.appendText(text + '\r\n'); };
   
-  // input key event callbacks, let's use the defaults 
-  // provided by WSClient.pressKey and WSClient.releaseKey
-  input.onKeyDown = function(e) { WSClient.pressKey(this, e); };
-  input.onKeyUp = function(e) { WSClient.releaseKey(this, e); };
-  
-  // which keys are used for cycling forward (ctrl+n)
-  // and backward (ctrl+p) through command history? 
-  input.keyCycleForward = function(key) { return (key.code == 78 && key.ctrl); }; // ctrl+n
-  input.keyCycleBackward = function(key) { return (key.code == 80 && key.ctrl); }; // ctrl+p
+  // handle incoming JSON objects. requires server specific implementation
+  conn.onObject = function (obj) { console.log('unhandled JSON object' + obj); };
+
+  // pueblo command links, prompt for user input and replace ?? token if present
+  output.onCommand = function(cmd) { sendCommand(WSClient.parseCommand(cmd)); };
+
+  // enter key passthrough from WSClient.pressKey
+  input.onEnter = function(cmd) { sendCommand(cmd); };
   
   // escape key passthrough from WSClient.pressKey
   input.onEscape = function () { this.clear(); };
   
-  // enter key passthrough from WSClient.pressKey
-  input.onEnter = function() {
-    if (conn && conn.socket.readyState === 1) {
-      conn.sendText(this.root.value);
-      output.appendMessage('localEcho', this.root.value)
-    } else {
-      // connection was broken, let's reconnect
-      if (conn) {
-        var old = conn;
-        old.sendText('QUIT');
-        setTimeout(function () { old.close(); }, 1000);
-        conn = null;
-      }
-
-      output.appendMessage('logMessage', '%% Reconnecting to server...');
-      connect(serverUrl);
-    }
-  };
+  // input key event callbacks. here we show the defaults
+  // provided by WSClient.pressKey and WSClient.releaseKey
+  // input.onKeyDown = function(e) { WSClient.pressKey(this, e); };
+  // input.onKeyUp = function(e) { WSClient.releaseKey(this, e); };
   
-  // callback for each line of output, the default is to replace url strings with links
-  output.onLine = WSClient.parseLinks;
+  // which keys are used for cycling through command history?
+  // here we show the default keys, ctrl+p and ctrl+n
+  // input.keyCycleForward = function(key) { return (key.code === 78 && key.ctrl); }; // ctrl+n
+  // input.keyCycleBackward = function(key) { return (key.code === 80 && key.ctrl); }; // ctrl+p
   
-  // pueblo command link callback
-  output.onCommand = function(command) {
-    // replace ?? tokens with user input
-    var cmd = WSClient.parseCommand(command);
-    
-    conn && conn.sendText(cmd);
-    output.appendMessage('localEcho', cmd);
-  };
-
 </script>
 
 </body>
