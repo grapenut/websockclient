@@ -9,16 +9,13 @@ WSClient is a JavaScript library for making websocket connections from a browser
 
 __wsclient.js__ provides the `WSClient` class which has 3 exported objects:
 
-`conn = WSClient.open(url)`
-Open a connection to `url` and return the connection object.
+`conn = WSClient.open(url)` opens a connection to `url` and returns the connection object.
 Use the `conn` object to setup callbacks that handle incoming data.
 
-`output = WSClient.output(root)`
-Turn DOM element `root` into an output terminal with xterm256 color emulation.
+`output = WSClient.output(root)` turns DOM element `root` into an output terminal with xterm256 color emulation.
 You may define multiple output terminals (e.g. chat window, combat log, main output).
 
-`input = WSClient.input(root)`
-Turn DOM element `root` into a user input box with command history and key events.
+`input = WSClient.input(root)` turns DOM element `root` into a user input box with command history and key events.
 
 __index.html__ is a minimal implementation of the client. It demonstrates
 how to setup the required event callbacks and use the default event handlers.
@@ -28,7 +25,7 @@ __style.css__ provides basic visual styling and content layout for the elements 
 __ansi.css__ defines the style tags used in xterm256 color emulation.
 
 
-
+## 
 ## Open
 #### Open a Connection
 
@@ -65,7 +62,7 @@ Overload events on the connection object in order to handle the different types 
 `conn.onObject = function(obj)` handles an incoming JSON object. There is no default implementation, but one could use `obj` to pass bulk JSON data for e.g. maps, huds, seperate combat window, etc.
 
 
-
+## 
 ## Output
 #### Create an Output Terminal
 
@@ -92,7 +89,7 @@ Overload events on the connection object in order to handle the different types 
 `WSClient.parseLinks` is a utility function provided to convert URL strings into interactive links.
 
 
-
+## 
 ## Input
 
 The UserInput handler provides command history and key event callbacks for a user input text box.
