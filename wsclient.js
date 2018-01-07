@@ -54,15 +54,15 @@ var WSClient = (function (window, document, undefined) {
   };
 
   Connection.prototype.close = function () {
-    this.socket.close();
+    this.socket && this.socket.close();
   };
 
   Connection.prototype.sendText = function (data) {
-    (this.socket.readyState === 1) && this.socket.send(Connection.CHANNEL_TEXT + data + '\r\n');
+    this.socket && (this.socket.readyState === 1) && this.socket.send(Connection.CHANNEL_TEXT + data + '\r\n');
   };
 
   Connection.prototype.sendObject = function (data) {
-    this.socket.send(Connection.CHANNEL_JSON + window.JSON.stringify(data));
+    this.socket && (this.socket.readyState === 1) && this.socket.send(Connection.CHANNEL_JSON + window.JSON.stringify(data));
   };
 
   Connection.prototype.onOpen = null;
