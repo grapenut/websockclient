@@ -828,7 +828,7 @@ var WSClient = (function (window, document, undefined) {
     if (cmd.search(regex) !== -1) {
       var val = prompt(command);
       
-      if (!val || val === 'undefined') {
+      if ((val === null) || (val === 'undefined')) {
         // user cancelled the prompt, don't send any command
         cmd = '';
       } else {
