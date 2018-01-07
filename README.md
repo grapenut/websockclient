@@ -2,10 +2,12 @@
 
 WSClient is a JavaScript library for making websocket connections from a browser to a websocket-enabled PennMUSH server.
 
-- **xterm256** color support.
-- Full HTML/CSS support.
-- Embed clickable command links (Pueblo).
+- Supports **xterm256** color.
+- Supports embedded HTML/CSS.
+- Supports embedded clickable command links (Pueblo).
 - Handle and display command input prompts.
+- Recall user input command history.
+- Provide default handlers for key press events.
 
 __wsclient.js__ provides the `WSClient` class which has 3 exported objects:
 
@@ -25,11 +27,11 @@ __style.css__ provides basic visual styling and content layout for the elements 
 __ansi.css__ defines the style tags used in xterm256 color emulation.
 
 
-## 
+# 
 ## Open
 #### Open a Connection
 
-`conn = WSClient.open(url)` returns a connection object. The `url` is of the form <ws://host:port/wsclient> or <wss://host:port/wsclient> for SSL. 
+`conn = WSClient.open(url)` returns a connection object. The `url` is of the form [](ws://host:port/wsclient) or [](wss://host:port/wsclient) for SSL. 
 
 #### Connection Functions
 
@@ -62,7 +64,7 @@ Overload events on the connection object in order to handle the different types 
 `conn.onObject = function(obj)` handles an incoming JSON object. There is no default implementation, but one could use `obj` to pass bulk JSON data for e.g. maps, huds, seperate combat window, etc.
 
 
-## 
+# 
 ## Output
 #### Create an Output Terminal
 
@@ -89,7 +91,7 @@ Overload events on the connection object in order to handle the different types 
 `WSClient.parseLinks` is a utility function provided to convert URL strings into interactive links.
 
 
-## 
+# 
 ## Input
 
 The UserInput handler provides command history and key event callbacks for a user input text box.
