@@ -358,7 +358,8 @@ var WSClient = (function (window, document, undefined) {
   };
 
   Terminal.prototype.endLine = function () {
-    this.onLine && this.onLine(this.lineBuf);
+    var that = this;
+    this.onLine && this.onLine(that, this.lineBuf);
 
     this.write('\n', 0, 1);
     this.lineBuf.length = 0;
@@ -706,7 +707,7 @@ var WSClient = (function (window, document, undefined) {
   // some string helper functions for replacing links and user input tokens
 
   // Example onLine() handler that linkifies URLs in text.
-  function LinkHandler(lineBuf) {
+  function LinkHandler(that, lineBuf) {
     // Merge text so we can scan it.
     if (!lineBuf.length) {
       return;
@@ -761,7 +762,8 @@ var WSClient = (function (window, document, undefined) {
 
       anchor.target = '_blank';
       if (info.url === '' && info.xch_cmd !== '') {
-        anchor.setAttribute('onClick', 'xch_cmd("'+info.xch_cmd+'");');
+        anchor.setAttribute('onClick', 'this.onCommand("'+info.xch_cmd+'");');
+        anchor.onCommand = that.onCommand;
       } else {
         anchor.href = info.url;
       }
