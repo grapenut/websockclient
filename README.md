@@ -11,7 +11,7 @@ WSClient is a JavaScript library for making websocket connections from a browser
 
 __wsclient.js__ provides the `WSClient` class which has 3 exported objects:
 
-`conn = WSClient.open(url)` opens a connection to `url` and returns the connection object.
+`conn = WSClient.connect(url)` opens a connection to `url` and returns the connection object.
 Use the `conn` object to setup callbacks that handle incoming data.
 
 `output = WSClient.output(root)` turns DOM element `root` into an output terminal with xterm256 color emulation.
@@ -28,12 +28,14 @@ __ansi.css__ defines the style tags used in xterm256 color emulation.
 
 
 # 
-## Open
-#### Open a Connection
+## Connect
+#### Create a Websocket Connection
 
-`conn = WSClient.open(url)` returns a connection object. The `url` is of the form ws://host:port/wsclient or wss://host:port/wsclient for SSL. 
+`conn = WSClient.connect(url)` returns a connection object. The `url` is of the form ws://host:port/wsclient or wss://host:port/wsclient for SSL. 
 
 #### Connection Functions
+
+`conn.isConnected()` returns true if the socket is connected and ready.
 
 `conn.sendText(text)` sends the command `text` to the server.
 
@@ -51,7 +53,8 @@ Overload events on the connection object in order to handle the different types 
 
 `conn.onClose = function(evt)` is called whenever the connection socket is closed remotely.
 
-`conn.onMessage = function(channel, data)` handles all incoming Websocket data. Used internally to split data into different channels. **__Do not overload this function.__**
+`conn.onMessage = function(channel, data)` handles all incoming Websocket data. Used internally to split data into different channels.
+**__You should not overload this function unless you are adding new channels.__**
 
 `conn.onText = function(text)` handles incoming plain text. Responsible for appending `text` to the output terminal.
 
@@ -84,9 +87,11 @@ Overload events on the connection object in order to handle the different types 
 
 #### Terminal Events
 
-`output.onCommand = function(command)` handles Pueblo links. Responsible for sending `command` to the connection object.
+`output.onCommand = function(cmd)` handles Pueblo links. Responsible for sending `cmd` to the connection object.
+`cmd = WSClient.parseCommand(cmd)` prompts the user for input and replaces the ?? token if one exists in `cmd`.
 
-`output.onLine = WSClient.parseLinks` is called to handle finished lines just before they are written to the terminal. You probably won't change this.
+`output.onLine = WSClient.parseLinks` is called to handle finished lines just before they are written to the terminal.
+**__You should not overload this function unless you set it null to disable link parsing.__**
 
 `WSClient.parseLinks` is a utility function provided to convert URL strings into interactive links.
 
@@ -104,7 +109,7 @@ The default keys for cycling history are `ctrl+p` and `ctrl+n` but these can be 
 
 #### User Input Functions
 
-`input.pushCommand()` pushes the current value of the input box onto the command history stack and clears the input box.
+`input.saveCommand()` pushes the current value of the input box onto the command history stack and clears the input box.
 
 `input.cycleBackward()` replaces the current value of the input box with the previous command from history.
 
@@ -130,7 +135,7 @@ The default keys for cycling history are `ctrl+p` and `ctrl+n` but these can be 
 
 `input.onKeyUp = function(evt) { WSClient.releaseKey(this, evt); };` handles key releases in the input box. Here we used the default `WSClient.releaseKey` function.
 
-`input.onEnter = function()` handles when the user presses `ENTER`. Responsible for sending input command to the server.
+`input.onEnter = function(cmd)` handles when the user presses `ENTER`. Responsible for sending input command to the server.
 
 `input.onEscape = function()` handles when the user presses `ESCAPE`.
 
