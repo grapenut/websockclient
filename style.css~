@@ -27,8 +27,6 @@ textarea {
 
 ul, li {
   list-style-type: none;
-  margin-left: 0;
-  padding-left: 0;
 }
 
 .localEcho {
