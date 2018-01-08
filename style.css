@@ -25,6 +25,10 @@ textarea {
   font-size: inherit;
 }
 
+ul, li {
+  list-style-type: none;
+}
+
 .localEcho {
   color: yellow;
   font-weight: bold;
