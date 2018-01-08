@@ -26,6 +26,9 @@ __style.css__ provides basic visual styling and content layout for the elements 
 
 __ansi.css__ defines the style tags used in xterm256 color emulation.
 
+__connect.html__ is a single-file version that is suitable for serving directly from the MUSH's HTTP redirect page.
+It links directly to the current __ansi.css__ and __wsclient.js__ from the `master` branch on github.com.
+
 
 # 
 ## Connect
