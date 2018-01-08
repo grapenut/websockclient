@@ -14,6 +14,7 @@ var WSClient = (function (window, document, undefined) {
     
     this.url = url;
     this.socket = null;
+    this.isOpen = false;
     
     Connection.reconnect(that);
   }
@@ -29,6 +30,7 @@ var WSClient = (function (window, document, undefined) {
   };
   
   Connection.onopen = function (that, evt) {
+    that.isOpen = true;
     that.onOpen && that.onOpen(evt);
   };
 
@@ -55,6 +57,7 @@ var WSClient = (function (window, document, undefined) {
     }
 
     this.socket = new window.WebSocket(this.url);
+    this.isOpen = false;
 
     this.socket.onopen = function (evt) {
       Connection.onopen(that, evt);
@@ -74,7 +77,7 @@ var WSClient = (function (window, document, undefined) {
   };
   
   Connection.prototype.isConnected = function() {
-    return (this.socket && (this.socket.readyState === 1));
+    return (this.socket && this.isOpen && (this.socket.readyState === 1));
   };
 
   Connection.prototype.close = function () {
@@ -82,11 +85,11 @@ var WSClient = (function (window, document, undefined) {
   };
 
   Connection.prototype.sendText = function (data) {
-    this.socket && (this.socket.readyState === 1) && this.socket.send(Connection.CHANNEL_TEXT + data + '\r\n');
+    this.isConnected() && this.socket.send(Connection.CHANNEL_TEXT + data + '\r\n');
   };
 
   Connection.prototype.sendObject = function (data) {
-    this.socket && (this.socket.readyState === 1) && this.socket.send(Connection.CHANNEL_JSON + window.JSON.stringify(data));
+    this.isConnected() && this.socket.send(Connection.CHANNEL_JSON + window.JSON.stringify(data));
   };
 
   Connection.prototype.onOpen = null;
@@ -158,17 +161,8 @@ var WSClient = (function (window, document, undefined) {
   // MU* terminal emulator.
   function Terminal(root) {
     this.root = root;
-    this.stack = [root];
-
-    this.state = Terminal.PARSE_PLAIN;
-    this.line = null;
-    this.lineBuf = [];
-    this.span = null;
-    this.parseBuf = '';
-
-    this.ansiClass = '';
-    this.ansiState = null;
-    this.ansiDirty = false;
+    
+    this.clear();
   }
 
   Terminal.PARSE_PLAIN = 0;
@@ -189,6 +183,7 @@ var WSClient = (function (window, document, undefined) {
   
   Terminal.UNCLOSED_TAGS = ['area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img',
           'input', 'keygen', 'link', 'menuitem', 'meta', 'param', 'source', 'track', 'wbr'];
+
 
   /////////////////////////////////////////////////////
   // ansi parsing routines
@@ -586,6 +581,18 @@ var WSClient = (function (window, document, undefined) {
   
   Terminal.prototype.clear = function() {
     this.root.innerHTML = '';
+
+    this.stack = [this.root];
+
+    this.state = Terminal.PARSE_PLAIN;
+    this.line = null;
+    this.lineBuf = [];
+    this.span = null;
+    this.parseBuf = '';
+
+    this.ansiClass = '';
+    this.ansiState = null;
+    this.ansiDirty = false;
   };
 
   // setup the pueblo xch_cmd callback
