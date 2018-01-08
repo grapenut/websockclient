@@ -186,6 +186,9 @@ var WSClient = (function (window, document, undefined) {
 
   Terminal.DEFAULT_FG = 37;
   Terminal.DEFAULT_BG = 30;
+  
+  Terminal.UNCLOSED_TAGS = ['area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img',
+          'input', 'keygen', 'link', 'menuitem', 'meta', 'param', 'source', 'track', 'wbr'];
 
   /////////////////////////////////////////////////////
   // ansi parsing routines
@@ -521,9 +524,17 @@ var WSClient = (function (window, document, undefined) {
       tag = tag.substring(1);
     }
 
+    var selfClosing = false;
+    if ((tag.substring(-1) === '/') || (attrs.substring(-1) === '/')) {
+      selfClosing = true;
+    }
+    
+    if (Terminal.UNCLOSED_TAGS.indexOf(tag.toLowerCase()) > -1) {
+      selfClosing = true;
+    }
+
     if ((tag === 'XCH_PAGE') || 
-        ((tag === 'IMG') && (attrs.search(/xch_graph=(("[^"]*")|('[^']*')|([^\s]*))/i) !== -1)) ||
-        (tag === 'HR')) {
+        ((tag === 'IMG') && (attrs.search(/xch_graph=(("[^"]*")|('[^']*')|([^\s]*))/i) !== -1))) {
       //console.log("unhandled pueblo", html);
       return;
     }
@@ -556,12 +567,20 @@ var WSClient = (function (window, document, undefined) {
 
       div.setAttribute('target', '_blank');
       
-      // add this tag to the stack
+      // add this tag to the stack to keep track of nested elements
       this.pushElement(div.firstChild);
+
+      // automatically pop the tag if it is self closing
+      if (selfClosing) {
+        this.popElement();
+      }
+
     } else {
-      // we have an ending </tag>
-      // pop the stack and send it to the output
-      this.popElement();
+      // we have an ending </tag> so remove the closed tag from the stack
+      // don't bother for self closing tags with an explicit end tag, we already popped them
+      if (!selfClosing) {
+        this.popElement();
+      }
     }
   };
   
