@@ -474,10 +474,14 @@ var WSClient = (function (window, document, undefined) {
   
   // append a log message to the terminal
   Terminal.prototype.appendMessage = function (classid, message) {
-    var text = document.createElement('div');
-    text.className = classid;
-    text.innerHTML = message;
-    this.appendHTML(text);
+    var div = document.createElement('div');
+    div.className = classid;
+    
+    // create a text node to safely append the string without rendering code
+    var text = document.createTextNode(message);
+    div.appendChild(text);
+    
+    this.appendHTML(div);
   };
   
   // push a new html element onto the stack
