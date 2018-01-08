@@ -46,6 +46,8 @@ It links directly to the current __ansi.css__ and __wsclient.js__ from the `mast
 
 `conn.close()` closes the connection socket.
 
+`conn.reconnect()` reinitiates a connection that was closed by the remote server.
+
 #### Connection Events
 
 Overload events on the connection object in order to handle the different types of incoming data and send it to the terminal.

@@ -46,6 +46,13 @@ var WSClient = (function (window, document, undefined) {
 
   Connection.prototype.reconnect = function () {
     var that = this;
+    
+    // quit the old connection, if we have one
+    if (this.socket) {
+      var old = this.socket;
+      this.sendText('QUIT');
+      setTimeout(old.close, 1000);
+    }
 
     this.socket = new window.WebSocket(this.url);
 
