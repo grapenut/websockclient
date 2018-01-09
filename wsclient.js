@@ -851,7 +851,7 @@ var WSClient = (function (window, document, undefined) {
   //
   // TODO: This can be improved (but also customized). One enhancement might be
   // to support internationalized syntax.
-  LinkHandler.regex = /(^|[^a-zA-Z0-9]+)(?:((?:http|https):\/\/[-a-zA-Z0-9_.~:\/?#[\]@!$&'()*+,;=%]+)|([-.+a-zA-Z0-9_]+@[-a-zA-Z0-9]+(?:\.[-a-zA-Z0-9]+)+)|(@[a-zA-Z]\w*))/g;
+  LinkHandler.regex = /(^|[^a-zA-Z0-9]+)(?:((?:http|https):\/\/[-a-zA-Z0-9_.~:\/?#[\]@!$&'()*+,;=%]+[-a-zA-Z0-9_~:\/?#@!$&*+;=%])|([-.+a-zA-Z0-9_]+@[-a-zA-Z0-9]+(?:\.[-a-zA-Z0-9]+)+)|(@[a-zA-Z]\w*))/g;
 
   // set the default line handler for the terminal to use the LinkHandler
   Terminal.prototype.onLine = LinkHandler;
