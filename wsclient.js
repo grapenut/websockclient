@@ -589,7 +589,9 @@ var WSClient = (function (window, document, undefined) {
   };
   
   Terminal.prototype.clear = function() {
-    this.root && this.root.innerHTML = '';
+    if (this.root) {
+      this.root.innerHTML = '';
+    }
 
     this.stack = [this.root];
 
