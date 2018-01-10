@@ -473,7 +473,14 @@ var WSClient = (function (window, document, undefined) {
 
   // append an HTML fragment to the terminal
   Terminal.prototype.appendHTML = function (fragment) {
-    (this.span || this.stack[this.stack.length - 1]).appendChild(fragment);
+    var html = fragment.replace(
+      /xch_cmd="([^"]*)"/i,
+      "onClick='this.onCommand(&quot;$1&quot;)'"
+    );
+    
+    var last = (this.span || this.stack[this.stack.length - 1]);
+    last.appendChild(html);
+    last.firstChild.onCommand = this.onCommand;
 
     // TODO: May want to animate this, to make it less abrupt.
     this.root.scrollTop = this.root.scrollHeight;
@@ -582,7 +589,7 @@ var WSClient = (function (window, document, undefined) {
   };
   
   Terminal.prototype.clear = function() {
-    this.root.innerHTML = '';
+    this.root && this.root.innerHTML = '';
 
     this.stack = [this.root];
 
