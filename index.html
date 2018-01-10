@@ -28,10 +28,12 @@
 <script type="text/javascript" src="https://rawgit.com/grapenut/websockclient/master/wsclient.js"></script>
 <script type="text/javascript">
   var serverAddress = window.location.hostname;
-  var serverPort = '4201';
+  var serverSSL = window.location.protocol == "https:";
+  var serverProto = serverSSL ? "wss://" : "ws://";
+  var serverPort = serverSSL ? '4202' : '4201';
 
   // The connection URL is ws://host:port/wsclient (or wss:// for SSL connections)
-  var serverUrl = 'ws://' + serverAddress + ":" + serverPort + '/wsclient'
+  var serverUrl = serverProto + serverAddress + ":" + serverPort + '/wsclient'
 
   // define the input box, output terminal, and network connection
   var output = WSClient.output(document.getElementById('output'));
