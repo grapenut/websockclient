@@ -35,10 +35,12 @@ var WSClient = (function (window, document, undefined) {
   };
 
   Connection.onerror = function (that, evt) {
+    that.isOpen = false;
     that.onError && that.onError(evt);
   };
 
   Connection.onclose = function (that, evt) {
+    that.isOpen = false;
     that.onClose && that.onClose(evt);
   };
 
@@ -50,10 +52,10 @@ var WSClient = (function (window, document, undefined) {
     var that = this;
     
     // quit the old connection, if we have one
-    if (this.socket) {
+    if (this.isConnected()) {
       var old = this.socket;
       this.sendText('QUIT');
-      setTimeout(old.close, 1000);
+      this.isOpen && setTimeout(old.close, 1000);
     }
 
     this.socket = new window.WebSocket(this.url);
