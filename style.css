@@ -25,7 +25,7 @@ textarea {
   font-size: inherit;
 }
 
-ul, li {
+ul {
   display: flex;
   flex-direction: column;
   list-style-type: none;
