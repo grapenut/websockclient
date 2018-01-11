@@ -164,6 +164,10 @@ var WSClient = (function (window, document, undefined) {
   function Terminal(root) {
     this.root = root;
     
+    if (root === null) {
+      return null;
+    }
+    
     this.clear();
   }
 
@@ -473,13 +477,13 @@ var WSClient = (function (window, document, undefined) {
 
   // append an HTML fragment to the terminal
   Terminal.prototype.appendHTML = function (fragment) {
-    var html = fragment.replace(
+    fragment.innerHTML.replace(
       /xch_cmd="([^"]*)"/i,
       "onClick='this.onCommand(&quot;$1&quot;)'"
     );
     
     var last = (this.span || this.stack[this.stack.length - 1]);
-    last.appendChild(html);
+    last.appendChild(fragment);
     last.firstChild.onCommand = this.onCommand;
 
     // TODO: May want to animate this, to make it less abrupt.
@@ -589,9 +593,7 @@ var WSClient = (function (window, document, undefined) {
   };
   
   Terminal.prototype.clear = function() {
-    if (this.root) {
-      this.root.innerHTML = '';
-    }
+    this.root.innerHTML = '';
 
     this.stack = [this.root];
 
@@ -618,12 +620,14 @@ var WSClient = (function (window, document, undefined) {
   function UserInput(root) {
     var that = this;
     
+    if (root === null) {
+      return null;
+    }
+    
     this.root = root;
-    this.history = [];
-    this.ncommand = 0;
-    this.save_current = '';
-    this.current = -1;
-
+    
+    this.clearHistory();
+  
     this.root.onkeydown = function(evt) {
       UserInput.onkeydown(that, evt);
     };
@@ -632,6 +636,11 @@ var WSClient = (function (window, document, undefined) {
       UserInput.onkeyup(that, evt);
     };
   }
+  
+  // clear the history for a given UserInput object
+  UserInput.clearhistory = function(that) {
+
+  };
   
   // passthrough to the local onKeyDown callback
   UserInput.onkeydown = function(that, evt) {
@@ -655,6 +664,14 @@ var WSClient = (function (window, document, undefined) {
   
   UserInput.prototype.onEnter = null;
   UserInput.prototype.onEscape = null;
+  
+  // clear the command history
+  UserInput.prototype.clearHistory = function() {
+    this.history = [];
+    this.ncommand = 0;
+    this.save_current = '';
+    this.current = -1;
+  };
   
   // push a command onto the history list and clear the input box
   UserInput.prototype.saveCommand = function() {
