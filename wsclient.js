@@ -477,7 +477,14 @@ var WSClient = (function (window, document, undefined) {
 
   // append an HTML fragment to the terminal
   Terminal.prototype.appendHTML = function (fragment) {
-    fragment.innerHTML && fragment.innerHTML.replace(
+    if (fragment === null) { return; }
+  
+    if (fragment.innerHTML === null ||
+        fragment.innerHTML === undefined) {
+      return;        
+    }
+    
+    fragment.innerHTML.replace(
       /xch_cmd="([^"]*)"/i,
       "onClick='this.onCommand(&quot;$1&quot;)'"
     );
