@@ -109,34 +109,11 @@ var WSClient = (function (window, document, undefined) {
       break;
 
     case Connection.CHANNEL_HTML:
-      if (this.onHTML) {
-        var div = document.createElement('div');
-        div.innerHTML = data;
-
-        var fragment = document.createDocumentFragment();
-        for (var child = div.firstChild; child; child = child.nextSibling) {
-          fragment.appendChild(child);
-        }
-
-        this.onHTML(fragment);
-      }
+      this.onHTML && this.onHTML(data);
       break;
 
     case Connection.CHANNEL_PUEBLO:
-      if (this.onPueblo) {
-        var tag, attrs;
-
-        var idx = data.indexOf(' ');
-        if (idx !== -1) {
-          tag = data.substring(0, idx);
-          attrs = data.substring(idx + 1);
-        } else {
-          tag = data;
-          attrs = '';
-        }
-
-        this.onPueblo(tag.toUpperCase(), attrs);
-      }
+      this.onPueblo && this.onPueblo(data);
       break;
     
     case Connection.CHANNEL_PROMPT:
@@ -365,7 +342,7 @@ var WSClient = (function (window, document, undefined) {
     var text = document.createTextNode(value.substring(start, end));
     this.lineBuf[this.lineBuf.length] = text;
 
-    this.appendHTML(text);
+    this.appendChild(text);
   };
 
   Terminal.prototype.endLine = function () {
@@ -475,19 +452,27 @@ var WSClient = (function (window, document, undefined) {
     }
   };
 
-  // append an HTML fragment to the terminal
-  Terminal.prototype.appendHTML = function (fragment) {
-    if (fragment === null) { return; }
-    
-    var reg = /xch_cmd="([^"]*)"/i;
-    
-    for (var child = fragment.firstChild; child; child = child.nextSibling) {
-      if (child.innerHTML.search(reg) !== -1) {
-        child.innerHTML.replace(reg, "onClick='this.onCommand(&quot;$1&quot;)'");
+  Terminal.prototype.appendHTML = function (html) {
+    var div = document.createElement('div');
+    var fragment = document.createDocumentFragment();
+
+    div.innerHTML = html;
+
+    for (var child = div.firstChild; child; child = child.nextSibling) {
+      var cmd = child.getAttribute('xch_cmd');
+      if (cmd !== null && cmd !== '') {
+        child.setAttribute('onClick', 'this.onCommand("' + cmd + '");');
         child.onCommand = this.onCommand;
+        child.removeAttribute('xch_cmd');
       }
+      fragment.appendChild(child);
     }
-    
+
+    this.appendChild(fragment);
+  };
+
+  // append an HTML fragment to the terminal
+  Terminal.prototype.appendChild = function (fragment) {
     var last = (this.span || this.stack[this.stack.length - 1]);
     last.appendChild(fragment);
 
@@ -504,7 +489,7 @@ var WSClient = (function (window, document, undefined) {
     var text = document.createTextNode(message);
     div.appendChild(text);
     
-    this.appendHTML(div);
+    this.appendChild(div);
   };
   
   // push a new html element onto the stack
@@ -526,7 +511,19 @@ var WSClient = (function (window, document, undefined) {
   };
 
   // append a pueblo tag to the terminal stack (or pop if an end tag)
-  Terminal.prototype.appendPueblo = function (tag, attrs) {
+  Terminal.prototype.appendPueblo = function (data) {
+    var tag, attrs;
+
+    var idx = data.indexOf(' ');
+    if (idx !== -1) {
+      tag = data.substring(0, idx);
+      attrs = data.substring(idx + 1);
+    } else {
+      tag = data;
+      attrs = '';
+    }
+
+
     var html = '<' + tag + (attrs ? ' ' : '') + attrs + '>';
 
     var start;

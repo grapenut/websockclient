@@ -170,13 +170,13 @@
   
   // just log a standard message on these socket status events
   conn.onOpen = function (evt) { output.appendMessage('logMessage', '%% Connected.'); };
-  conn.onError = function (evt) { output.appendMessage('logMessage', '%% Connection error!'); };
+  conn.onError = function (evt) { output.appendMessage('logMessage', '%% Connection error!'); console.log(evt); };
   conn.onClose = function (evt) { output.appendMessage('logMessage', '%% Connection closed.'); };
 
   // handle incoming text, html, pueblo, or command prompts
   conn.onText = function (text) { output.appendText(text); };
-  conn.onHTML = function (fragment) { output.appendHTML(fragment); };
-  conn.onPueblo = function (tag, attrs) { output.appendPueblo(tag, attrs); };
+  conn.onHTML = function (html) { output.appendHTML(html); };
+  conn.onPueblo = function (html) { output.appendPueblo(html); };
   conn.onPrompt = function (text) { cmdprompt.clear(); cmdprompt.appendText(text + '\r\n'); };
   
   // handle incoming JSON objects. requires server specific implementation
