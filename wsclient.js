@@ -478,17 +478,18 @@ var WSClient = (function (window, document, undefined) {
   // append an HTML fragment to the terminal
   Terminal.prototype.appendHTML = function (fragment) {
     if (fragment === null) { return; }
-  
-    if (fragment.innerHTML && fragment.innerHTML !== undefined) {
-      fragment.innerHTML.replace(
-        /xch_cmd="([^"]*)"/i,
-        "onClick='this.onCommand(&quot;$1&quot;)'"
-      );
+    
+    var reg = /xch_cmd="([^"]*)"/i;
+    
+    for (var child = fragment.firstChild; child; child = child.nextSibling) {
+      if (child.innerHTML.search(reg) !== -1) {
+        child.innerHTML.replace(reg, "onClick='this.onCommand(&quot;$1&quot;)'");
+        child.onCommand = this.onCommand;
+      }
     }
     
     var last = (this.span || this.stack[this.stack.length - 1]);
     last.appendChild(fragment);
-    last.firstChild.onCommand = this.onCommand;
 
     // TODO: May want to animate this, to make it less abrupt.
     this.root.scrollTop = this.root.scrollHeight;
