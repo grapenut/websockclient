@@ -479,15 +479,12 @@ var WSClient = (function (window, document, undefined) {
   Terminal.prototype.appendHTML = function (fragment) {
     if (fragment === null) { return; }
   
-    if (fragment.innerHTML === null ||
-        fragment.innerHTML === undefined) {
-      return;        
+    if (fragment.innerHTML && fragment.innerHTML !== undefined) {
+      fragment.innerHTML.replace(
+        /xch_cmd="([^"]*)"/i,
+        "onClick='this.onCommand(&quot;$1&quot;)'"
+      );
     }
-    
-    fragment.innerHTML.replace(
-      /xch_cmd="([^"]*)"/i,
-      "onClick='this.onCommand(&quot;$1&quot;)'"
-    );
     
     var last = (this.span || this.stack[this.stack.length - 1]);
     last.appendChild(fragment);
