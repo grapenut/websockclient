@@ -63,13 +63,13 @@ Overload events on the connection object in order to handle the different types 
 `conn.onMessage = function(channel, data)` handles all incoming Websocket data. Used internally to split data into different channels.
 **__You should not overload this function unless you are adding new channels.__**
 
-`conn.onText = function(text)` handles incoming plain text. Responsible for appending `text` to the output terminal.
+`conn.onText = function(data)` handles incoming plain text. The variable `data` is a string containing plain text and ANSI escape codes.
 
-`conn.onHTML = function(html)` handles incoming HTML code. Responsible for appending `html` to the output terminal.
+`conn.onHTML = function(data)` handles incoming HTML code. The variable `data` is a string containing HTML code to be rendered.
 
-`conn.onPueblo = function(tag, attrs)` handles incoming Pueblo links. Responsible for appending Pueblo `tag` and `attrs` to the output terminal.
+`conn.onPueblo = function(data)` handles incoming Pueblo links. The variable `data` is a string containing a single tag and attributes (without < or >).
 
-`conn.onPrompt = function(text)` handles incoming command prompts. Responsible for appending `text` to the command prompt (or main output terminal).
+`conn.onPrompt = function(data)` handles incoming command prompts. The variable `data` is a string containing plain text and ANSI escape codes.
 
 `conn.onObject = function(obj)` handles an incoming JSON object. There is no default implementation, but one could use `obj` to pass bulk JSON data for e.g. maps, huds, seperate combat window, etc.
 
