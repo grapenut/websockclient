@@ -14,12 +14,12 @@
 <div id="terminal">
   <div id="output" class="ansi-37 ansi-40"></div>
   <div id="quicklinks" class="ansi-1-34 ansi-40">
-    <a onClick='output.onCommand("who");'>WHO</a>
-    <a onClick='output.onCommand("look");'>LOOK</a>
-    <a onClick='output.onCommand("inventory");'>INVENTORY</a>
-    <a onClick='output.onCommand("@mail");'>MAIL</a>
-    <a onClick='output.onCommand("+bb");'>BBOARD</a>
-    <a onClick='output.onCommand("home");'>HOME</a>
+    <a onClick='sendCommand("who");'>WHO</a>
+    <a onClick='sendCommand("look");'>LOOK</a>
+    <a onClick='sendCommand("inventory");'>INVENTORY</a>
+    <a onClick='sendCommand("@mail");'>MAIL</a>
+    <a onClick='sendCommand("+bb");'>BBOARD</a>
+    <a onClick='sendCommand("home");'>HOME</a>
     <a onClick="output.clear(); cmdprompt.clear();">CLEAR OUTPUT</a></div>
   <div id="prompt" class="ansi-37 ansi-40"></div>
   <textarea id="input" autocomplete="off" autofocus></textarea>
