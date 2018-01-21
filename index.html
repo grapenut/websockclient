@@ -31,9 +31,11 @@
   var serverSSL = window.location.protocol == "https:";
   var serverProto = serverSSL ? "wss://" : "ws://";
   var serverPort = serverSSL ? '4202' : '4201';
+  
+  var customUrl = window.location.search.substring(1) ? window.location.search.substring(1) : serverAddress + ":" + serverPort;
 
   // The connection URL is ws://host:port/wsclient (or wss:// for SSL connections)
-  var serverUrl = serverProto + serverAddress + ":" + serverPort + '/wsclient'
+  var serverUrl = serverProto + customUrl + '/wsclient'
 
   // define the input box, output terminal, and network connection
   var output = WSClient.output(document.getElementById('output'));
