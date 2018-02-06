@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<base target="_blank">
+<link type="text/css" rel="stylesheet" href="https://golden-layout.com/files/latest/css/goldenlayout-base.css" />
+<link type="text/css" rel="stylesheet" href="https://golden-layout.com/files/latest/css/goldenlayout-dark-theme.css" />
+<link type="text/css" rel="stylesheet" href="ansi.css" />
+<link type="text/css" rel="stylesheet" href="style.css" />
+<title>PennMUSH Client</title></head>
+<body>
+<div id="wrapper">
+  <div id="layoutContainer"></div>
+</div>
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="https://golden-layout.com/files/latest/js/goldenlayout.min.js"></script>
+<script type="text/javascript" src="wsclient.js"></script>
+<script type="text/javascript" src="game.js"></script>
+<script type="text/javascript">
+  var search = window.location.search.substring(1);
+  var host = search ? search.substring(0, search.indexOf(':')) : window.location.hostname;
+  var ssl = (window.location.protocol == "https:");
+  var port = search ? search.substring(search.indexOf(':')+1) : ((window.location.protocol == "https:") ? '4202' : '4201');
+
+  var game = Game.newGame(document.getElementById('layoutContainer'));
+  game.initLayout();
+  game.connect(host, port, ssl);
+
+</script>
+</body>
+</html>
