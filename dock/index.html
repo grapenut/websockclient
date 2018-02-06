@@ -13,18 +13,17 @@
 </div>
 <script type="text/javascript" src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
 <script type="text/javascript" src="https://golden-layout.com/files/latest/js/goldenlayout.min.js"></script>
-<script type="text/javascript" src="wsclient.js"></script>
-<script type="text/javascript" src="game.js"></script>
+<script type="text/javascript" src="https://node.grapenut.org/wsclient.js"></script>
+<script type="text/javascript" src="client.js"></script>
 <script type="text/javascript">
   var search = window.location.search.substring(1);
   var host = search ? search.substring(0, search.indexOf(':')) : window.location.hostname;
   var ssl = (window.location.protocol == "https:");
-  var port = search ? search.substring(search.indexOf(':')+1) : ((window.location.protocol == "https:") ? '4202' : '4201');
+  var port = search ? search.substring(search.indexOf(':')+1) : (ssl ? '4202' : '4201');
 
-  var game = Game.newGame(document.getElementById('layoutContainer'));
-  game.initLayout();
-  game.connect(host, port, ssl);
-
+  var client = Client.create();
+  client.initLayout(document.getElementById('layoutContainer'));
+  client.connect(host, port, ssl);
 </script>
 </body>
 </html>
