@@ -747,7 +747,16 @@ var WSClient = (function (window, document, undefined) {
   
   // refocus the input box
   UserInput.prototype.focus = function() {
-    this.root.focus();
+    var text = "";
+    if (window.getSelection) {
+      text = window.getSelection().toString();
+    } else if (document.selection && document.selection.type != "Control") {
+      text = document.selection.createRange().text;
+    }
+    
+    if (text === "") {
+      this.root.focus();
+    }
   };
   
   // user-defined keys for command history
