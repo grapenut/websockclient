@@ -479,9 +479,8 @@ var WSClient = (function (window, document, undefined) {
   Terminal.prototype.appendChild = function (fragment) {
     var last = (this.span || this.stack[this.stack.length - 1]);
     last.appendChild(fragment);
-
-    // TODO: May want to animate this, to make it less abrupt.
-    this.root.scrollTop = this.root.scrollHeight;
+    
+    this.scrollDown();
   };
   
   // append a log message to the terminal
@@ -612,6 +611,31 @@ var WSClient = (function (window, document, undefined) {
     this.ansiClass = '';
     this.ansiState = null;
     this.ansiDirty = false;
+  };
+  
+  // animate scrolling the terminal window to the bottom
+  Terminal.prototype.scrollDown = function() {
+    // TODO: May want to animate this, to make it less abrupt.
+    //this.root.scrollTop = this.root.scrollHeight;
+    //return;
+    
+    var root = this.root;
+    var scrollCount = 0;
+    var scrollDuration = 500.0;
+    var oldTimestamp = performance.now();
+
+    function step (newTimestamp) {
+      var bottom = root.scrollHeight - root.clientHeight;
+      var delta = (bottom - root.scrollTop) / 2.0;
+
+      scrollCount += Math.PI / (scrollDuration / (newTimestamp - oldTimestamp));
+      if (scrollCount >= Math.PI) root.scrollTo(0, bottom);
+      if (root.scrollTop === bottom) { return; }
+      root.scrollTo(0, Math.round(root.scrollTop + delta));
+      oldTimestamp = newTimestamp;
+      window.requestAnimationFrame(step);
+    }
+    window.requestAnimationFrame(step);
   };
 
   // setup the pueblo xch_cmd callback
