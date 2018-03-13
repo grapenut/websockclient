@@ -2,7 +2,7 @@
 
 WSClient is a JavaScript library for making websocket connections from a browser to a websocket-enabled PennMUSH server.
 
-See <http://grapenut.org/code/websockclient/index.html> for a live demo.
+See <https://grapenut.github.io/websockclient/> for a live demo.
 
 - Supports **xterm256** color.
 - Supports embedded HTML/CSS.
