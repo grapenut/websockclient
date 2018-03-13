@@ -1,12 +1,10 @@
 <!DOCTYPE html>
 <html><head><meta charset="UTF-8">
-
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="ansi.css">
 <link rel="stylesheet" href="style.css">
 <base target="_blank">
-
 <title>Minimal Websocket JavaScript Client</title></head>
-
 <body onLoad="input.focus()"
       onUnload="conn.sendText('QUIT'); setTimeout(conn.close, 1000);"
       onClick="input.focus()">
@@ -27,7 +25,7 @@
 
 <script type="text/javascript" src="wsclient.js"></script>
 <script type="text/javascript">
-  //var serverAddress = window.location.hostname;
+  var serverAddress = window.location.hostname;
   var serverAddress = "grapenut.org";
   var serverSSL = window.location.protocol == "https:";
   var serverProto = serverSSL ? "wss://" : "ws://";
@@ -70,7 +68,7 @@
   conn.onPrompt = function (text) { cmdprompt.clear(); cmdprompt.appendText(text + '\r\n'); };
   
   // handle incoming JSON objects. requires server specific implementation
-  conn.onObject = function (obj) { console.log('unhandled JSON object' + obj); };
+  conn.onObject = function (obj) { console.log('unhandled JSON object', obj); };
 
   // pueblo command links, prompt for user input and replace ?? token if present
   output.onCommand = function(cmd) { sendCommand(WSClient.parseCommand(cmd)); };

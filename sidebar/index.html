@@ -9,6 +9,11 @@
       onUnload="conn.sendText('QUIT'); setTimeout(conn.close, 1000);"
       onClick="input.focus()">
 
+<div id="sidebar">
+  <ul id="navbar"></ul>
+  <div id="feed"></div>
+</div>
+
 <div id="terminal">
   <div id="output" class="ansi-37 ansi-40"></div>
   <div id="quicklinks" class="ansi-1-34 ansi-40">
@@ -25,8 +30,7 @@
 
 <script type="text/javascript" src="https://grapenut.github.io/websockclient/wsclient.js"></script>
 <script type="text/javascript">
-  var serverAddress = window.location.hostname;
-  var serverAddress = "grapenut.org";
+  var serverAddress = "node.grapenut.org";
   var serverSSL = window.location.protocol == "https:";
   var serverProto = serverSSL ? "wss://" : "ws://";
   var serverPort = serverSSL ? '4202' : '4201';

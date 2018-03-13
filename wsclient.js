@@ -123,7 +123,7 @@ var WSClient = (function (window, document, undefined) {
       break;
 
     default:
-      window.console && window.console.log('unhandled message', channel, data);
+      window.console && window.console.log('unhandled message: ' + channel + data);
       return false;
     }
 
