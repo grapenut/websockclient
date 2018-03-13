@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="ansi.css">
+<link rel="stylesheet" href="style.css">
+<base target="_blank">
+<title>Minimal Websocket JavaScript Client</title></head>
+<body onLoad="input.focus()"
+      onUnload="conn.sendText('QUIT'); setTimeout(conn.close, 1000);"
+      onClick="input.focus()">
+
+<div id="terminal">
+  <div id="output" class="ansi-37 ansi-40"></div>
+  <div id="quicklinks" class="ansi-1-34 ansi-40">
+    <a onClick='sendCommand("who");'>WHO</a>
+    <a onClick='sendCommand("look");'>LOOK</a>
+    <a onClick='sendCommand("inventory");'>INVENTORY</a>
+    <a onClick='sendCommand("@mail");'>MAIL</a>
+    <a onClick='sendCommand("+bb");'>BBOARD</a>
+    <a onClick='sendCommand("home");'>HOME</a>
+    <a onClick="output.clear(); cmdprompt.clear();">CLEAR OUTPUT</a></div>
+  <div id="prompt" class="ansi-37 ansi-40"></div>
+  <textarea id="input" autocomplete="off" autofocus></textarea>
+</div>
+
+<script type="text/javascript" src="wsclient.js"></script>
+<script type="text/javascript">
+  var serverAddress = window.location.hostname;
+  var serverAddress = "grapenut.org";
+  var serverSSL = window.location.protocol == "https:";
+  var serverProto = serverSSL ? "wss://" : "ws://";
+  var serverPort = serverSSL ? '4202' : '4201';
+  
+  var customUrl = window.location.search.substring(1) ? window.location.search.substring(1) : serverAddress + ":" + serverPort;
+
+  // The connection URL is ws://host:port/wsclient (or wss:// for SSL connections)
+  var serverUrl = serverProto + customUrl + '/wsclient'
+
+  // define the input box, output terminal, and network connection
+  var output = WSClient.output(document.getElementById('output'));
+  var cmdprompt = WSClient.output(document.getElementById('prompt'));
+  var input = WSClient.input(document.getElementById('input'));
+  var conn = WSClient.connect(serverUrl);
+
+  // function to send a command string to the server
+  function sendCommand(cmd) {
+    if (conn.isConnected()) {
+      if (cmd !== '') {
+        conn.sendText(cmd);
+        output.appendMessage('localEcho', cmd);
+      }
+    } else {
+      // connection was broken, let's reconnect
+      conn.reconnect();
+      output.appendMessage('logMessage', '%% Reconnecting to server...');
+    }
+  }
+  
+  // just log a standard message on these socket status events
+  conn.onOpen = function (evt) { output.appendMessage('logMessage', '%% Connected.'); };
+  conn.onError = function (evt) { output.appendMessage('logMessage', '%% Connection error!'); console.log(evt); };
+  conn.onClose = function (evt) { output.appendMessage('logMessage', '%% Connection closed.'); };
+
+  // handle incoming text, html, pueblo, or command prompts
+  conn.onText = function (text) { output.appendText(text); };
+  conn.onHTML = function (html) { output.appendHTML(html); };
+  conn.onPueblo = function (html) { output.appendPueblo(html); };
+  conn.onPrompt = function (text) { cmdprompt.clear(); cmdprompt.appendText(text + '\r\n'); };
+  
+  // handle incoming JSON objects. requires server specific implementation
+  conn.onObject = function (obj) { console.log('unhandled JSON object', obj); };
+
+  // pueblo command links, prompt for user input and replace ?? token if present
+  output.onCommand = function(cmd) { sendCommand(WSClient.parseCommand(cmd)); };
+
+  // enter key passthrough from WSClient.pressKey
+  input.onEnter = function(cmd) { sendCommand(cmd); };
+  
+  // escape key passthrough from WSClient.pressKey
+  input.onEscape = function () { this.clear(); };
+  
+  // input key event callbacks. here we show the defaults
+  // provided by WSClient.pressKey and WSClient.releaseKey
+  // input.onKeyDown = function(e) { WSClient.pressKey(this, e); };
+  // input.onKeyUp = function(e) { WSClient.releaseKey(this, e); };
+  
+  // which keys are used for cycling through command history?
+  // here we show the default keys, ctrl+p and ctrl+n
+  // input.keyCycleForward = function(key) { return (key.code === 78 && key.ctrl); }; // ctrl+n
+  // input.keyCycleBackward = function(key) { return (key.code === 80 && key.ctrl); }; // ctrl+p
+  
+</script>
+
+</body>
+</html>
+
