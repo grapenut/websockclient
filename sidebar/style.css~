@@ -73,7 +73,6 @@ html, body{
   flex-grow: 1;
   background: green;
   flex-direction: column;
-  overflow: auto;
 }
 
 .terminal {

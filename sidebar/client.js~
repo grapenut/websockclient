@@ -164,31 +164,6 @@ var Client = (function (window, document, undefined) {
   };
   
   /////////////////////////////////////////////////////////////////////////////////////////////////
-
-  // animate scrolling the terminal window to the bottom
-  _CLIENT.prototype.scrollFeed = function() {
-    // TODO: May want to animate this, to make it less abrupt.
-    //this.root.scrollTop = this.root.scrollHeight;
-    //return;
-    
-    var root = this.feed;   
-    var scrollCount = 0;
-    var scrollDuration = 500.0;
-    var oldTimestamp = performance.now();
-
-    function step (newTimestamp) {
-      var bottom = root.scrollHeight - root.clientHeight;
-      var delta = (bottom - root.scrollTop) / 2.0;
-
-      scrollCount += Math.PI / (scrollDuration / (newTimestamp - oldTimestamp));
-      if (scrollCount >= Math.PI) root.scrollTo(0, bottom);
-      if (root.scrollTop === bottom) { return; }
-      root.scrollTo(0, Math.round(root.scrollTop + delta));
-      oldTimestamp = newTimestamp;
-      window.requestAnimationFrame(step);
-    }
-    window.requestAnimationFrame(step);
-  };
   
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -240,7 +215,7 @@ var Client = (function (window, document, undefined) {
         div.append(text);
         
         client.feed.append(div);
-        client.scrollFeed();
+        
       }
     };
   };
