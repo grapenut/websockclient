@@ -5,7 +5,7 @@ Please see <https://github.com/grapenut/mush-portal> for an example client with 
 
 WSClient is a JavaScript library for making websocket connections from a browser to a websocket-enabled PennMUSH server.
 
-See <https://grapenut.github.io/websockclient?node.grapenut.org:4202> for a live demo.
+See <https://grapenut.github.io/websockclient/> for a live demo.
 
 - Supports **xterm256** color.
 - Supports embedded HTML/CSS.
