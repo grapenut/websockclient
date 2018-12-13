@@ -1,7 +1,7 @@
 ## WebSockClient (WSClient)
 
 # NOTE: This is the barebones socket library and minimal client implementation.
-Please see <https://github.com/grapenut/mush-portal> for an example client with a more advanced user interface built using Facebook's React.js
+**Please see <https://github.com/grapenut/mush-portal> for an example client with a more advanced user interface built using Facebook's React.js**
 
 WSClient is a JavaScript library for making websocket connections from a browser to a websocket-enabled PennMUSH server.
 
